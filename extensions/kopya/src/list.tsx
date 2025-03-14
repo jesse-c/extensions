@@ -1,7 +1,11 @@
 import { ActionPanel, List, Action, Icon, Detail, showToast, Toast, getPreferenceValues, openExtensionPreferences } from "@raycast/api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getHistory } from "./api";
 import { useCachedPromise } from "@raycast/utils";
+import { writeFile, unlink } from "fs/promises";
+import { tmpdir } from "os";
+import { join } from "path";
+import { execute } from "./exec";
 
 type ClipboardType = "All Types" | "Text" | "URL" | "Image" | "File";
 const TYPES: ClipboardType[] = ["All Types", "Text", "URL", "Image", "File"];
@@ -36,10 +40,49 @@ Size: ${formatBytes(Buffer.from(content, "base64").length)}
   );
 }
 
+async function convertRtfToMarkdown(rtfContent: string): Promise<string> {
+  const tempDir = tmpdir();
+  const tempRtfPath = join(tempDir, `temp-${Date.now()}.rtf`);
+  
+  try {
+    // Check if content appears to be RTF (basic check)
+    if (!rtfContent.trim().startsWith("{\\rtf")) {
+      console.warn("Content doesn't appear to be RTF");
+      return rtfContent;
+    }
+
+    await writeFile(tempRtfPath, rtfContent);
+    
+    // Convert RTF directly to Markdown instead of HTML
+    const { stdout, stderr } = await execute(`pandoc -f rtf -t markdown "${tempRtfPath}"`);
+    
+    if (stderr) {
+      console.warn("Pandoc warning:", stderr);
+    }
+    
+    return stdout || rtfContent;
+  } catch (error) {
+    console.error("Failed to convert RTF:", error);
+    await showToast({
+      style: Toast.Style.Failure,
+      title: "RTF Conversion Failed",
+      message: "Falling back to raw content"
+    });
+    return rtfContent; // Fallback to raw content if conversion fails
+  } finally {
+    try {
+      await unlink(tempRtfPath);
+    } catch (error) {
+      console.error("Failed to clean up temp file:", error);
+    }
+  }
+}
+
 export default function Command() {
   const preferences = getPreferenceValues<Preferences>();
   const [searchText, setSearchText] = useState("");
   const [selectedType, setSelectedType] = useState<ClipboardType>("All Types");
+  const [convertedContents, setConvertedContents] = useState<Record<string, string>>({});
 
   const { data, isLoading, error } = useCachedPromise(
     async (search: string, type: ClipboardType) => {
@@ -104,6 +147,17 @@ export default function Command() {
       const bytes = Buffer.from(entry.content, "base64").length;
       return `<${entry.type} data: ${formatBytes(bytes)}>`;
     }
+    
+    // Use converted RTF content for list items if available
+    if (entry.type.toLowerCase().includes("rtf")) {
+      // Return a simplified version of the Markdown content or a placeholder
+      if (convertedContents[entry.id]) {
+        // Strip Markdown headers for cleaner list display
+        return convertedContents[entry.id].replace(/^#{1,6} .*\n/gm, '') || entry.content;
+      }
+      return "Converting RTF content...";
+    }
+    
     return entry.content;
   };
 
@@ -117,8 +171,46 @@ export default function Command() {
 Size: ${formatBytes(bytes)}
 </div>`;
     }
+    
+    if (entry.type.toLowerCase().includes("rtf")) {
+      return convertedContents[entry.id] || "Converting RTF content...";
+    }
+    
     return entry.isTextual ? entry.content : `Type: ${entry.type}`;
   };
+
+  useEffect(() => {
+    // Convert RTF content for all RTF entries
+    const convertRtfEntries = async () => {
+      const rtfEntries = data.entries.filter(entry => 
+        entry.type.toLowerCase().includes("rtf") && 
+        !convertedContents[entry.id]  // Only convert if not already converted
+      );
+
+      for (const entry of rtfEntries) {
+        try {
+          const markdownContent = await convertRtfToMarkdown(entry.content);
+          setConvertedContents(prev => ({
+            ...prev,
+            [entry.id]: markdownContent
+          }));
+        } catch (error) {
+          console.error("Failed to convert RTF content:", error);
+          await showToast({
+            style: Toast.Style.Failure,
+            title: "Failed to Convert RTF",
+            message: "Showing raw content instead"
+          });
+          setConvertedContents(prev => ({
+            ...prev,
+            [entry.id]: entry.content
+          }));
+        }
+      }
+    };
+
+    convertRtfEntries();
+  }, [data.entries]);
 
   if (error) {
     return (
