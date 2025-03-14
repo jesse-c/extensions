@@ -6,7 +6,7 @@ interface Preferences {
 }
 
 export interface ClipboardEntry {
-  id: number;
+  id: string;
   content: string;
   type: string;
   timestamp: string;
@@ -35,7 +35,7 @@ function isHistoryResponse(data: unknown): data is HistoryResponse {
     if (!entry || typeof entry !== "object") return false;
     const e = entry as Record<string, unknown>;
     return (
-      typeof e.id === "number" &&
+      typeof e.id === "string" &&
       typeof e.content === "string" &&
       typeof e.type === "string" &&
       typeof e.timestamp === "string" &&
