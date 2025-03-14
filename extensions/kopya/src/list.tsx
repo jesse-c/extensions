@@ -135,10 +135,31 @@ export default function Command() {
     {} as Record<string, typeof data.entries>,
   );
 
-  const getIcon = (type: string) => {
-    if (type.toLowerCase().includes("image")) return Icon.Image;
-    if (type.toLowerCase().includes("url")) return Icon.Link;
-    if (type.toLowerCase().includes("file")) return Icon.Document;
+  const getIcon = (entry: (typeof data.entries)[0]) => {
+    // Use humanReadableType for more accurate icon mapping if available
+    const typeToCheck = entry.humanReadableType || entry.type;
+    
+    // Match icons based on the server's humanReadableType values
+    if (typeToCheck === "PNG" || typeToCheck === "TIFF" || typeToCheck.toLowerCase().includes("image")) 
+      return Icon.Image;
+    if (typeToCheck === "URL") 
+      return Icon.Link;
+    if (typeToCheck === "File URL" || typeToCheck.toLowerCase().includes("file")) 
+      return Icon.Document;
+    if (typeToCheck === "RTF") 
+      return Icon.TextDocument;
+    if (typeToCheck === "PDF") 
+      return Icon.Document;
+    if (typeToCheck === "Text") 
+      return Icon.Text;
+      
+    // Default fallback based on type string
+    if (entry.type.toLowerCase().includes("image")) return Icon.Image;
+    if (entry.type.toLowerCase().includes("url")) return Icon.Link;
+    if (entry.type.toLowerCase().includes("file")) return Icon.Document;
+    if (entry.type.toLowerCase().includes("rtf")) return Icon.TextDocument;
+    if (entry.type.toLowerCase().includes("pdf")) return Icon.Document;
+    
     return Icon.Text;
   };
 
@@ -257,14 +278,17 @@ Size: ${formatBytes(bytes)}
           {entries.map((entry) => (
             <List.Item
               key={entry.id}
-              icon={getIcon(entry.type)}
+              icon={getIcon(entry)}
               title={getTitle(entry)}
               detail={
                 <List.Item.Detail
                   markdown={getDetailContent(entry)}
                   metadata={
                     <List.Item.Detail.Metadata>
-                      <List.Item.Detail.Metadata.Label title="Content type" text={entry.type} />
+                      <List.Item.Detail.Metadata.Label 
+                        title="Content type" 
+                        text={entry.humanReadableType || entry.type} 
+                      />
                       <List.Item.Detail.Metadata.Separator />
                       <List.Item.Detail.Metadata.Label
                         title="Time"

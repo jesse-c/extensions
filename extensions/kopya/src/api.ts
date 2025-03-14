@@ -9,6 +9,7 @@ export interface ClipboardEntry {
   id: string;
   content: string;
   type: string;
+  humanReadableType: string;
   timestamp: string;
   isTextual: boolean;
 }
@@ -38,6 +39,7 @@ function isHistoryResponse(data: unknown): data is HistoryResponse {
       typeof e.id === "string" &&
       typeof e.content === "string" &&
       typeof e.type === "string" &&
+      typeof e.humanReadableType === "string" &&
       typeof e.timestamp === "string" &&
       typeof e.isTextual === "boolean"
     );
