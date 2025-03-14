@@ -71,9 +71,14 @@ async function convertRtfToMarkdown(rtfContent: string): Promise<string> {
     return rtfContent; // Fallback to raw content if conversion fails
   } finally {
     try {
+      // Attempt to clean up the temp file
       await unlink(tempRtfPath);
     } catch (error) {
-      console.error("Failed to clean up temp file:", error);
+      // Only log errors that aren't "file not found" errors
+      // ENOENT means the file was already deleted, which is fine
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        console.error("Failed to clean up temp file:", error);
+      }
     }
   }
 }
