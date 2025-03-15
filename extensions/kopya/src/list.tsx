@@ -7,9 +7,6 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { execute } from "./exec";
 
-type ClipboardType = "All Types" | "Text" | "URL" | "Image" | "File";
-const TYPES: ClipboardType[] = ["All Types", "Text", "URL", "Image", "File"];
-
 interface Preferences {
   apiUrl: string;
 }
@@ -86,15 +83,13 @@ async function convertRtfToMarkdown(rtfContent: string): Promise<string> {
 export default function Command() {
   const preferences = getPreferenceValues<Preferences>();
   const [searchText, setSearchText] = useState("");
-  const [selectedType, setSelectedType] = useState<ClipboardType>("All Types");
   const [convertedContents, setConvertedContents] = useState<Record<string, string>>({});
 
   const { data, isLoading, error } = useCachedPromise(
-    async (search: string, type: ClipboardType) => {
+    async (search: string) => {
       try {
         return await getHistory({
           query: search || undefined,
-          type: type === "All Types" ? undefined : type.toLowerCase(),
           limit: 100,
         });
       } catch (err) {
@@ -108,7 +103,7 @@ export default function Command() {
         throw err;
       }
     },
-    [searchText, selectedType],
+    [searchText],
     {
       initialData: { entries: [], total: 0 },
     },
@@ -266,17 +261,6 @@ Size: ${formatBytes(bytes)}
       searchBarPlaceholder="Type to filter entries..."
       navigationTitle="Clipboard History"
       isShowingDetail
-      searchBarAccessory={
-        <List.Dropdown
-          tooltip="Select Type"
-          value={selectedType}
-          onChange={(newValue) => setSelectedType(newValue as ClipboardType)}
-        >
-          {TYPES.map((type) => (
-            <List.Dropdown.Item key={type} title={type} value={type} />
-          ))}
-        </List.Dropdown>
-      }
     >
       {Object.entries(groupedEntries).map(([date, entries]) => (
         <List.Section key={date} title={date}>
