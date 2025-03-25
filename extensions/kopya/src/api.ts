@@ -50,7 +50,11 @@ export async function getHistory(params: SearchParams = {}): Promise<HistoryResp
   const preferences = getPreferenceValues<Preferences>();
   const searchParams = new URLSearchParams();
   
+  // Determine which endpoint to use based on whether we're searching
+  const endpoint = params.query ? "search" : "history";
+  
   if (params.query) {
+    console.log(`Searching with query: ${params.query}`);
     searchParams.append("query", params.query);
   }
   if (params.type) {
@@ -61,7 +65,8 @@ export async function getHistory(params: SearchParams = {}): Promise<HistoryResp
   }
 
   const queryString = searchParams.toString();
-  const url = `${preferences.apiUrl}/history${queryString ? `?${queryString}` : ""}`;
+  const url = `${preferences.apiUrl}/${endpoint}${queryString ? `?${queryString}` : ""}`;
+  console.log(`Fetching from: ${url}`);
 
   try {
     const response = await fetch(url);
@@ -74,6 +79,7 @@ export async function getHistory(params: SearchParams = {}): Promise<HistoryResp
       throw new Error("Invalid response format from API");
     }
     
+    console.log(`Received ${data.entries.length} entries from API`);
     return data;
   } catch (error) {
     console.error("Error fetching history:", error);

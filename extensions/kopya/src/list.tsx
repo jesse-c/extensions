@@ -85,6 +85,11 @@ export default function Command() {
   const [searchText, setSearchText] = useState("");
   const [convertedContents, setConvertedContents] = useState<Record<string, string>>({});
 
+  const handleSearchTextChange = (newSearchText: string) => {
+    console.log(`Search text changed to: ${newSearchText}`);
+    setSearchText(newSearchText);
+  };
+
   const { data, isLoading, error, revalidate } = useCachedPromise(
     async (search: string) => {
       try {
@@ -284,7 +289,7 @@ Size: ${formatBytes(bytes)}
   return (
     <List
       isLoading={isLoading}
-      onSearchTextChange={setSearchText}
+      onSearchTextChange={handleSearchTextChange}
       searchBarPlaceholder="Type to filter entries..."
       navigationTitle="Clipboard History"
       isShowingDetail
