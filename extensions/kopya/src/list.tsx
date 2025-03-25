@@ -283,6 +283,11 @@ Size: ${formatBytes(bytes)}
                         title="Time"
                         text={new Date(entry.timestamp).toLocaleString()}
                       />
+                      <List.Item.Detail.Metadata.Separator />
+                      <List.Item.Detail.Metadata.Label
+                        title="ID"
+                        text={entry.id}
+                      />
                     </List.Item.Detail.Metadata>
                   }
                 />
