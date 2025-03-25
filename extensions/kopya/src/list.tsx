@@ -1,6 +1,6 @@
 import { ActionPanel, List, Action, Icon, Detail, showToast, Toast, getPreferenceValues, openExtensionPreferences } from "@raycast/api";
 import { useState, useEffect } from "react";
-import { getHistory } from "./api";
+import { getHistory, deleteEntryById } from "./api";
 import { useCachedPromise } from "@raycast/utils";
 import { writeFile, unlink } from "fs/promises";
 import { tmpdir } from "os";
@@ -85,7 +85,7 @@ export default function Command() {
   const [searchText, setSearchText] = useState("");
   const [convertedContents, setConvertedContents] = useState<Record<string, string>>({});
 
-  const { data, isLoading, error } = useCachedPromise(
+  const { data, isLoading, error, revalidate } = useCachedPromise(
     async (search: string) => {
       try {
         return await getHistory({
@@ -200,6 +200,33 @@ Size: ${formatBytes(bytes)}
     return entry.isTextual ? entry.content : `Type: ${entry.type}`;
   };
 
+  const handleDeleteEntry = async (id: string) => {
+    try {
+      const result = await deleteEntryById(id);
+      if (result.success) {
+        await showToast({
+          style: Toast.Style.Success,
+          title: "Entry deleted",
+          message: "Clipboard entry was successfully deleted",
+        });
+        // Refresh the list
+        revalidate();
+      } else {
+        await showToast({
+          style: Toast.Style.Failure,
+          title: "Failed to delete entry",
+          message: result.message,
+        });
+      }
+    } catch (error) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Error deleting entry",
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  };
+
   useEffect(() => {
     // Convert RTF content for all RTF entries
     const convertRtfEntries = async () => {
@@ -305,6 +332,13 @@ Size: ${formatBytes(bytes)}
                       icon={Icon.Eye}
                     />
                   )}
+                  <Action
+                    title="Delete Entry"
+                    icon={Icon.Trash}
+                    shortcut={{ modifiers: ["cmd", "shift"], key: "backspace" }}
+                    style={Action.Style.Destructive}
+                    onAction={() => handleDeleteEntry(entry.id)}
+                  />
                 </ActionPanel>
               }
             />
