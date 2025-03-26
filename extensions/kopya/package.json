@@ -11,9 +11,45 @@
         {
             "name": "list",
             "title": "Cliphboard History",
-            "subtitle": "List entries in your history.",
+            "subtitle": "List entries in your history",
             "description": "List some, or all, entries in your history.",
             "mode": "view"
+        },
+        {
+            "name": "enable-private-mode",
+            "title": "Enable Private Mode",
+            "subtitle": "Stop recording clipboard history",
+            "description": "Enable private mode to temporarily stop recording clipboard history, with optional timer.",
+            "mode": "no-view",
+            "arguments": [
+                {
+                    "name": "hours",
+                    "placeholder": "Hours",
+                    "type": "text",
+                    "required": false
+                },
+                {
+                    "name": "minutes",
+                    "placeholder": "Minutes",
+                    "type": "text",
+                    "required": false
+                }
+            ]
+        },
+        {
+            "name": "disable-private-mode",
+            "title": "Disable Private Mode",
+            "subtitle": "Resume recording clipboard history",
+            "description": "Disable private mode and resume recording clipboard history.",
+            "mode": "no-view"
+        },
+        {
+            "name": "private-mode-status",
+            "title": "Private Mode Status",
+            "subtitle": "Check private mode status",
+            "description": "Check if private mode is enabled and view timer details, if active.",
+            "mode": "menu-bar",
+            "interval": "30s"
         }
     ],
     "preferences": [
