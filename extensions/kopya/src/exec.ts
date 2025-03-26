@@ -14,6 +14,6 @@ export const execAsync = promisify(exec);
  */
 export async function execute(command: string): Promise<{ stdout: string; stderr: string }> {
   return execAsync(command, {
-    env: { ...process.env, PATH }
+    env: { ...process.env, PATH },
   });
 }
