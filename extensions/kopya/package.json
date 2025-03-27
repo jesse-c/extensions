@@ -9,8 +9,8 @@
     "categories": ["Productivity"],
     "commands": [
         {
-            "name": "list",
-            "title": "Cliphboard History",
+            "name": "history",
+            "title": "History",
             "subtitle": "List entries in your history",
             "description": "List some, or all, entries in your history.",
             "mode": "view"
