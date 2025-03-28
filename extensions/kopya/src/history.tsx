@@ -320,10 +320,8 @@ Size: ${formatBytes(bytes)}
               }
               actions={
                 <ActionPanel>
-                  <Action.CopyToClipboard
-                    content={entry.content}
-                    title={entry.type.toLowerCase().includes("image") ? "Copy Image" : "Copy to Clipboard"}
-                  />
+                  <Action.CopyToClipboard content={entry.content} title={"Copy Content to Clipboard"} />
+                  <Action.CopyToClipboard content={entry.id} title={"Copy ID to Clipboard"} />
                   {entry.type.toLowerCase().includes("image") && (
                     <Action.Push
                       title="Preview Image"
