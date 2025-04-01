@@ -40,7 +40,7 @@ Size: ${formatBytes(Buffer.from(content, "base64").length)}
 </div>`}
       actions={
         <ActionPanel>
-          <Action.CopyToClipboard content={content} title="Copy Image" />
+          <Action.CopyToClipboard content={content} title="Copy Content to Clipboard" />
         </ActionPanel>
       }
     />
