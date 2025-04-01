@@ -320,8 +320,17 @@ Size: ${formatBytes(bytes)}
               }
               actions={
                 <ActionPanel>
-                  <Action.CopyToClipboard content={entry.content} title={"Copy Content to Clipboard"} />
-                  <Action.CopyToClipboard content={entry.id} title={"Copy ID to Clipboard"} />
+                  <Action.CopyToClipboard
+                    content={
+                      entry.type.toLowerCase().includes("rtf")
+                        ? convertedContents[entry.id]
+                          ? convertedContents[entry.id].replace(/[#*_`~]/g, "").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+                          : entry.content
+                        : entry.content
+                    }
+                    title={"Copy Content to Clipboard"}
+                  />
+                  <Action.CopyToClipboard content={entry.id} title={"Copy Id to Clipboard"} />
                   {entry.type.toLowerCase().includes("image") && (
                     <Action.Push
                       title="Preview Image"
